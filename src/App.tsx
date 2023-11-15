@@ -17,11 +17,30 @@ export default function App ()
     function handleMouseEnter ()
     {
         setValue("psychic fiesta");
+
+        var head = document.getElementById("top");
+        
+        // ensure not null
+        if (head)
+        {
+            head.style.height = "400px";
+            // add/remove classes
+            // head.classList.add("something");
+        }
+        
     }
 
     function handleMouseLeave ()
     {
         setValue(value + "\b\b\b\b");
+
+        var head = document.getElementById("top");
+        
+        // ensure not null
+        if (head)
+        {
+            head.style.height = "30%";
+        }
     }
 
     return (
