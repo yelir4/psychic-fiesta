@@ -1,3 +1,8 @@
+/**
+ * main.tsx
+ * 
+ * connects main code `App.tsx` to program entry index.html`
+ */
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'

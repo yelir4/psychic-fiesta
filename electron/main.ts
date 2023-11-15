@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
 
-// The built directory structure
+// directory structure
 //
 // ├─┬─┬ dist
 // │ │ └── index.html
@@ -19,7 +19,12 @@ let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
-  win = new BrowserWindow({
+  // want non-resizable window
+  win = new BrowserWindow ({
+    width: 700,
+    height: 700,
+    resizable: false,
+
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -57,4 +62,5 @@ app.on('activate', () => {
   }
 })
 
+// uses promise -> creates window when chromium is loaded
 app.whenReady().then(createWindow)
