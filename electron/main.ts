@@ -19,15 +19,18 @@ let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
+
   // want non-resizable window
+  // `useContentSize` makes it ensures our window is `width x height`
   win = new BrowserWindow ({
-    width: 700,
-    height: 700,
+    width: 480,
+    height: 540,
+    useContentSize: true,
     resizable: false,
 
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js')
     },
   })
 

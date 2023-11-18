@@ -16,14 +16,27 @@ export default function App ()
 
     function handleMouseEnter ()
     {
-        setValue("psychic fiesta");
-
         var head = document.getElementById("top");
+        var middle = document.getElementById("middle")
+        var grid = document.getElementById("grid");
+
+        if (grid && middle)
+        {
+            var height = grid.style.getPropertyValue('height');
+            if (height)
+            {
+                setValue("" + height);
+            }
+        }
+        else
+        {
+            setValue("lol!!");
+        }
         
         // ensure not null
         if (head)
         {
-            head.style.height = "400px";
+            head.style.color = "#101010";
             // add/remove classes
             // head.classList.add("something");
         }
@@ -32,25 +45,70 @@ export default function App ()
 
     function handleMouseLeave ()
     {
-        setValue(value + "\b\b\b\b");
+        // setValue(value + "\b\b\b\b");
 
         var head = document.getElementById("top");
         
         // ensure not null
         if (head)
         {
-            head.style.height = "30%";
+            head.style.color = "#efefef";
         }
     }
 
     return (
         <>
             <div id="top" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                <div className="square">
-                    {value}
-                </div>
                 psychic fiesta
             </div>
+
+            <div id="middle">
+                <div id="grid">
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                    <div className="square"></div>
+                </div>
+            </div>
+
+            
         </>
     );
 }

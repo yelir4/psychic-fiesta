@@ -6,7 +6,7 @@
 {
   font-family: 'Trebuchet MS', 'Verdana', 'Segoe UI', sans-serif;
   color: rgba(12, 12, 12, 0.87);    /* text color */
-  background-color: #cbb0cb;
+  background-color: #323238;
   
   height: 100%;
   margin: 0;
@@ -33,37 +33,82 @@ body
   height: 100%;
 }
 
-/* top panel */
+/*
+  #top
+  id="top"
+
+  top panel provides game menu
+  text is horizontally and vertically aligned
+*/
 #top
 {
   /* keep it within the borders */
   box-sizing: border-box;
-  background-color: #323238;
-  width: 100%;
-  height: 30%;
-}
+  display: flex;
 
-.square
-{
-  box-sizing: border-box;
-  display: flex; /* enable use of flexbox */
-  width: 30%;
-  height: 100%;
-  float: left;
-  font-size: 24pt;
+  width: 100%;
+  height: 10%;
+
+  /*
+    justify-content: horizontal
+    align-items: vertical
+  */
   justify-content: center;
   align-items: center;
-  font-weight: oblique;
-  background-color: #999999;
-  border: 3px solid #323243;
+
+  background-color: #ca90cf;
+  color: #efefef;
+  font-weight: 900;
+  font-size: 24pt;
 }
 
-.red
+/*
+  #middle
+  id="middle"
+
+  middle will have something too
+*/
+#middle
 {
-  background-color: #dc7878;
+  /* keep it within the borders */
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+  height: 90%;
+
+  background-color: #cfca90;
+  color: #efefef;
+  font-weight: 900;
+  font-size: 14pt;
+
 }
 
-.yellow
+/*
+  #grid
+  id="grid"
+
+  house squares, game field
+*/
+#grid
 {
-  background-color: #dcbf78;
+  margin-top: 10%;
+  width: 80%;
+  height: 80%;
+}
+/*
+  .square
+  className="square"
+
+  game grid
+*/
+.square
+{
+  float: left;
+  box-sizing: border-box;
+  width: calc(100% / 6);
+  height: calc(100% / 6);
+  background-color: #202020;
+  border: 3px solid #323238;
 }
