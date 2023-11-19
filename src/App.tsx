@@ -5,19 +5,27 @@
  * 
  * @import useState - for dynamic changes
  * @import useEffect - for listening to keypresses "side effects"
+ * @import useRef - link between `App` and `Square`
  * @import Square - from the current directory, to Square.tsx, for `Square` component
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Square from "./Square.tsx";
 
 
 /**
- * @class App
+ * @function App
  * @returns our app in all of its glory
  */
 const App = () =>
 {
     const [keyPressed, setKeyPressed] = useState<String>("");
+    const childrenSquares = useRef();
+
+    // given index...
+    // 
+    // childrenSquares.current[index].current.toggle();
+    //
+    // <Square ref={childrenSquares.current[0]} />
 
     // head id
     var head = document.getElementById("top");
@@ -35,30 +43,24 @@ const App = () =>
 
     const handleMouseLeave = () =>
     {
-        // ensure not null
-        if (head)
-        {
-            head.style.color = "#efefef";
-        }
+        head ? head.style.color = "#efefef" : null;
     }
 
 
     /**
-     * @function handleKeyDown()
-     * @param event keypress
-     * 
      * we extract the pressed `key`
-     * check if its alphabetical
+     * if `key` is alphabetical, we set the key to uppercase, and update `keyPressed` state
      * 
-     * if it IS, we set the key to uppercase, and set `pressedKey` to it
+     * @function handleKeyDown()
+     * @param event key press
      */
     const handleKeyDown = (event: any) =>
     {
         /**
          * event.which is supposed to be deprecated but i'll use it anyway
-         * to determine if the key pressed was alphabetical
+         * determine if the key pressed was alphabetical
+         * (this triggers things that dependent on `keyPressed` such as within `Square` component)
          */
-        console.log(event.which);
         if (65 <= event.which && event.which <= 90)
         {
             setKeyPressed(event.key.toUpperCase());
@@ -66,24 +68,25 @@ const App = () =>
     }
 
     /**
-     * ok trying to grasp understanding this,
-     * @function useEffect()
+     * useEffect() was imported from "react", and we call it here
      * 
-     * we import this function from `React` at the top of this document,
-     * and we call it here
+     * we pass in a CALLBACK FUNCTION as the first argument, which is executed...
      * 
-     * we pass in a CALLBACK FUNCTION as the first argument,
-     * which contains the code that we want to execute when this function is called
+     * our callback function adds an event listener to the `document`
+     * so we listen for key presses and subsequently call `handleKeyDown`
      * 
-     * the second argument is an EMPTY DEPENDENCY ARRAY
-     * typically, when a dependency in the array changes, it calls this function
+     * the second argument is the DEPENDENCY ARRAY
+     * typically, when the state of a dependency changes, this function is called
+     * since the dependency array is EMPTY, this function is only called ONCE, upon initial component mount
      * 
-     * since the dependency array is EMPTY, this function is only called ONCE, when the component initially mounts
+     * @call useEffect()
+     * @dependency none
+     * @return clean up event listener on component dismount to avoid memory leaks
      */
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
 
-        // clean up event listener on component dismount (avoid memory leak)
+        // note that the return is also a callback function
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
@@ -148,5 +151,5 @@ const App = () =>
     );
 }
 
-// declare our export
+// declare this file's export
 export default App;

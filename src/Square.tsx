@@ -1,7 +1,7 @@
 /**
  * Square.tsx
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 /**
  * squares make up our game grid
@@ -35,11 +35,11 @@ const Square = ({pressedKey}: any) =>
         "brown"
     ];
 
-    /*
-        behavior of square, for now when mouse enters
-        but it will be something else
-        @function handleMouseEnter
-    */
+    /**
+     * behavior of square, for now when mouse enters
+     * but it will be something else
+     * @function handleMouseEnter
+     */
     const handleMouseEnter = () =>
     {
         if (filled)
@@ -61,9 +61,9 @@ const Square = ({pressedKey}: any) =>
     }
 
     /**
-     * when `Square` mounts, we want it to have a random state
+     * when `Square` mounts, we want to initialize a random state
      * 
-     * @function useEffect()
+     * @call useEffect()
      * @dependency none - called once on component mount
      */
     useEffect(() => {
@@ -71,13 +71,11 @@ const Square = ({pressedKey}: any) =>
     }, []);
 
     /**
-     * modify square Behavior when we notice a change in `pressedKey`
+     * modify square Behavior when we detect changes in the state of `pressedKey`
      * if Square's `letter` matches `pressedKey` we highlight the square
      * 
-     * 
-     * 
-     * @function useEffect()
-     * @dependency `pressedKey` detect changes in the pressedKey
+     * @call useEffect()
+     * @dependency pressedKey
      */
     useEffect(() => {
         /**
@@ -108,7 +106,8 @@ const Square = ({pressedKey}: any) =>
         <div className={"square " + color + " " + touched} onMouseEnter={handleMouseEnter}>
             {letter}
         </div>
-    )
+    );
 }
 
+// declare this file's export
 export default Square;
