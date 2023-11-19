@@ -12,6 +12,9 @@
   margin: 0;
   line-height: 1;
   text-wrap: pretty;
+
+  /* prevent user from selecting text */
+  user-select: none;
 }
 
 /*
@@ -96,6 +99,7 @@ body
   margin-top: 10%;
   width: 80%;
   height: 80%;
+  border: 3px solid #323238;
 }
 /*
   .square
@@ -105,10 +109,28 @@ body
 */
 .square
 {
+  display: flex;
   float: left;
   box-sizing: border-box;
   width: calc(100% / 6);
   height: calc(100% / 6);
   background-color: #202020;
   border: 3px solid #323238;
+
+  /* deal with text stuff */
+  font-size: 30pt;
+  justify-content: center;
+  align-items: center;
+  /* overflow: hidden; */
+  text-align: center;
+}
+
+/*
+  class="square letter"
+
+  assuming this has a letter inside
+*/
+.square.letter
+{
+  background-color: #fe9067;
 }
