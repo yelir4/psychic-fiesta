@@ -3,70 +3,27 @@
  * 
  * lets burn everything for now
  * 
- * useState for dynamic changes
- * useEffect for listening to keypresses "side effects"
+ * @import useState - for dynamic changes
+ * @import useEffect - for listening to keypresses "side effects"
+ * @import Square - from the current directory, to Square.tsx, for `Square` component
  */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import Square from "./Square.tsx";
+
 
 /**
- * @function Square()
- * 
- * squares make up our game grid
- * they can either be empty, have a letter, or have something else (tbd)
- * 
- * 
- * @return dynamic square css element
- */
-const Square = () =>
-{
-    /**
-     * @var filled whether or not this square has something inside it
-     * @var letter the inner letter of the square, provided it is filled
-     */
-    const [filled, setFilled] = useState(false);
-    const [letter, setLetter] = useState("");
-
-    /*
-        behavior of square, for now when mouse enters
-        but it will be something else
-    */
-    function handleMouseEnter ()
-    {
-        if (filled)
-        {
-            setFilled(false);
-            setLetter("");
-        }
-        else
-        {
-            setFilled(true);
-            setLetter(String.fromCharCode(Math.floor(Math.random()*26)+65));
-        }
-    }
-
-
-    return (
-        <div className="square" onMouseEnter={handleMouseEnter}>
-            {letter}
-        </div>
-    )
-}
-
-/**
- * @function App
- * 
+ * @class App
  * @returns our app in all of its glory
  */
 const App = () =>
 {
-    const [value, setValue] = useState(String(""));
+    const [keyPressed, setKeyPressed] = useState<String>("");
+
+    // head id
     var head = document.getElementById("top");
 
     const handleMouseEnter = () =>
     {
-        setValue("lol!");
-        
-        
         // ensure not null
         if (head)
         {
@@ -78,8 +35,6 @@ const App = () =>
 
     const handleMouseLeave = () =>
     {
-        setValue("nooo!!");
-        
         // ensure not null
         if (head)
         {
@@ -92,11 +47,22 @@ const App = () =>
      * @function handleKeyDown()
      * @param event keypress
      * 
-     * we extract the pressed `key` and set `value` to it
+     * we extract the pressed `key`
+     * check if its alphabetical
+     * 
+     * if it IS, we set the key to uppercase, and set `pressedKey` to it
      */
     const handleKeyDown = (event: any) =>
     {
-        setValue(event.key);
+        /**
+         * event.which is supposed to be deprecated but i'll use it anyway
+         * to determine if the key pressed was alphabetical
+         */
+        console.log(event.which);
+        if (65 <= event.which && event.which <= 90)
+        {
+            setKeyPressed(event.key.toUpperCase());
+        }
     }
 
     /**
@@ -126,58 +92,61 @@ const App = () =>
     return (
         <>
             <div id="top" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                psychic fiesta {value}
+                psychic fiesta
             </div>
 
+            <div id="keyState">{keyPressed}</div>
+
             <div id="middle">
+                
+
                 <div id="grid">
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
                     
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
-                    <Square />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
+                    <Square pressedKey={keyPressed} />
                 </div>
             </div>
         </>
     );
 }
-
 
 // declare our export
 export default App;

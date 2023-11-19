@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 
 // directory structure
@@ -13,6 +13,12 @@ import path from 'node:path'
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
+/**
+ * remove menu bar
+ * 
+ * as of now it is only hidden, can be retrieved by pressing alt (which messes up screen dimensions)
+ */
+// Menu.setApplicationMenu(null)
 
 let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
@@ -24,9 +30,11 @@ function createWindow() {
   // `useContentSize` makes it ensures our window is `width x height`
   win = new BrowserWindow ({
     width: 480,
-    height: 540,
+    height: 600,
     useContentSize: true,
     resizable: false,
+    alwaysOnTop: true,
+    autoHideMenuBar: true,
 
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
