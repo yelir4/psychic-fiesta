@@ -20,7 +20,7 @@
 
   /* prevent user from selecting text */
   user-select: none;
-
+  overflow: hidden;
   
 }
 

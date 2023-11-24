@@ -22,14 +22,15 @@ interface SquareProps
 const Square: React.FC<SquareProps> = ({pressedKey}) =>
 {
     /**
-     * @var filled whether or not this square has something inside it
-     * @var letter the inner letter of the square, provided it is filled
-     * @var classList list of classes that the square belongs to
+     * @var color square color
+     * @var filled whether this square has something inside it
+     * @var letter square's letter, provided it is filled
+     * @var touched whether the square is highlighted
      */
+    const [color, setColor] = useState<string>("");
     const [filled, setFilled] = useState<boolean>(false);
     const [letter, setLetter] = useState<string>("");
-    const [color, setColor] = useState<string>("");
-    const [touched, setTouched] = useState<string>("");
+    const [touched, setTouched] = useState<boolean>(false);
 
     /**
      * color enumeration
@@ -45,28 +46,33 @@ const Square: React.FC<SquareProps> = ({pressedKey}) =>
     ];
 
     /**
-     * behavior of square, for now when mouse enters
+     * called on component mount, initializing square
      * but it will be something else
-     * @function handleMouseEnter
+     * @function initSquare
      */
-    const handleMouseEnter = () =>
+    const initSquare = () =>
     {
-        if (filled)
-        {
-            setFilled(false);
-            setLetter("");
-        }
-        else
-        {
-            setFilled(true);
-            // `randomLetter` randomly generated number [0,26)
-            var randomLetter = Math.floor(Math.random() * 26);
-            setLetter(String.fromCharCode(randomLetter + 65));
+        setFilled(true);
+        // `randomLetter` randomly generated number [0,26)
+        var randomLetter = Math.floor(Math.random() * 26);
+        setLetter(String.fromCharCode(randomLetter + 65));
 
-            // `randomColor` randomly generated number [0, colors.length)
-            var randomColor = Math.floor(Math.random() * colors.length);
-            setColor(colors[randomColor]);
-        }
+        // `randomColor` randomly generated number [0, colors.length)
+        var randomColor = Math.floor(Math.random() * colors.length);
+        setColor(colors[randomColor]);
+    }
+
+    /**
+     * called by spacebar clear, reset all square variables
+     * 
+     * @function resetSquare
+     */
+    const resetSquare = () =>
+    {
+        setColor("");
+        setFilled(false);
+        setLetter("");
+        setTouched(false);
     }
 
     /**
@@ -76,7 +82,7 @@ const Square: React.FC<SquareProps> = ({pressedKey}) =>
      * @dependency none - called once on component mount
      */
     useEffect(() => {
-        handleMouseEnter();
+        initSquare();
     }, []);
 
     /**
@@ -93,7 +99,14 @@ const Square: React.FC<SquareProps> = ({pressedKey}) =>
          */
         if (pressedKey === " ")
         {
-            setTouched("");
+            if (touched)
+            {
+                resetSquare();
+                setTimeout(() => 
+                {
+                    initSquare();
+                }, 500);
+            }
         }
         /**
          * only do comparison if Square is `filled`
@@ -104,14 +117,14 @@ const Square: React.FC<SquareProps> = ({pressedKey}) =>
             // console.log("letter is " + letter);
             if (pressedKey === letter)
             {
-                setTouched("touched");
+                setTouched(true);
             }
         }
     }, [pressedKey]);
 
 
     return (
-        <div className={"square " + color + " " + touched} onMouseEnter={handleMouseEnter}>
+        <div className={"square " + color + (touched ? " touched" : "")}> 
             {letter}
         </div>
     );

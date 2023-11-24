@@ -20,7 +20,10 @@ const App: React.FC = () =>
 {
     const [keyPressed, setKeyPressed] = useState<string>("");
     const [keyString, setKeyString] = useState<string>("");
-    const childrenSquares = useRef();
+    // const childrenSquares = useRef();
+    // each element in `boardState` corresponds to child element
+    // (square)
+    const [boardState, setBoardState] = useState([]);
 
     // given index...
     // 
