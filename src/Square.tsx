@@ -4,23 +4,32 @@
 import React, { useState, useEffect, useRef } from "react";
 
 /**
+ * @interface SquareProps
+ */
+interface SquareProps
+{
+    pressedKey: string;
+}
+
+/**
  * squares make up our game grid
  * they can either be empty, have a letter, or have something else (tbd)
  * 
  * @function Square()
+ * @param pressedKey passed in by App, keystroke
  * @return dynamic square css element
  */
-const Square = ({pressedKey}: any) =>
+const Square: React.FC<SquareProps> = ({pressedKey}) =>
 {
     /**
      * @var filled whether or not this square has something inside it
      * @var letter the inner letter of the square, provided it is filled
      * @var classList list of classes that the square belongs to
      */
-    const [filled, setFilled] = useState<Boolean>(false);
+    const [filled, setFilled] = useState<boolean>(false);
     const [letter, setLetter] = useState<string>("");
     const [color, setColor] = useState<string>("");
-    const [touched, setTouched] = useState<String>("");
+    const [touched, setTouched] = useState<string>("");
 
     /**
      * color enumeration
@@ -86,11 +95,10 @@ const Square = ({pressedKey}: any) =>
         {
             setTouched("");
         }
-
         /**
          * only do comparison if Square is `filled`
          */
-        if (filled)
+        else if (filled)
         {
             // console.log("pressed key is " + pressedKey);
             // console.log("letter is " + letter);

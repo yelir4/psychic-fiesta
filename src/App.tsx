@@ -14,11 +14,12 @@ import Square from "./Square.tsx";
 
 /**
  * @function App
- * @returns our app in all of its glory
+ * @returns our app in all of its glorydwq
  */
-const App = () =>
+const App: React.FC = () =>
 {
-    const [keyPressed, setKeyPressed] = useState<String>("");
+    const [keyPressed, setKeyPressed] = useState<string>("");
+    const [keyString, setKeyString] = useState<string>("");
     const childrenSquares = useRef();
 
     // given index...
@@ -57,13 +58,22 @@ const App = () =>
     const handleKeyDown = (event: any) =>
     {
         /**
+         * custom functionality spacebar
+         */
+        if (event.key === " ")
+        {
+            setKeyPressed(event.key);
+            setKeyString("");
+        }
+        /**
          * event.which is supposed to be deprecated but i'll use it anyway
          * determine if the key pressed was alphabetical
          * (this triggers things that dependent on `keyPressed` such as within `Square` component)
          */
-        if (65 <= event.which && event.which <= 90)
+        else if (65 <= event.which && event.which <= 90)
         {
             setKeyPressed(event.key.toUpperCase());
+            setKeyString((keyString) => keyString + event.key.toUpperCase());
         }
     }
 
@@ -98,11 +108,9 @@ const App = () =>
                 psychic fiesta
             </div>
 
-            <div id="keyState">{keyPressed}</div>
+            <div id="keyState">{keyString}</div>
 
             <div id="middle">
-                
-
                 <div id="grid">
                     <Square pressedKey={keyPressed} />
                     <Square pressedKey={keyPressed} />
