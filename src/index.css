@@ -20,6 +20,8 @@
 
   /* prevent user from selecting text */
   user-select: none;
+  
+  /* if there are scaling issues this hides them .. */
   overflow: hidden;
   
 }
@@ -176,4 +178,10 @@ body
 .square.touched
 {
   color: #101010;
+}
+
+/* testing purposes */
+.square.purple
+{
+  color: #a93287;
 }
