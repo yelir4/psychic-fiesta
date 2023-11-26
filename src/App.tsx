@@ -2,22 +2,25 @@
  * App.tsx
  * 
  * is 36 a magic number? well i have no immediate plans to
- * change the board size but what if i did, i guess it is
+ * change the board size but if i did, i guess it is
  * well definitely in any case its a magic number but i feel
  * like this is simple enough to understand ...
  * 
+ * @import React - for some purpose
  * @import useState - for dynamic changes
  * @import useEffect - for listening to keypresses "side effects"
- * @import useRef - link between `App` and `Square`
- * @import Square - from the current directory, to Square.tsx, for `Square` component
+ * @import Square - `Square` component
+ * @import Top - title bar component 
  */
 import React, { useState, useEffect } from "react";
 import Square from "./Square.tsx";
+import Top from "./Top.tsx"
 
 /**
  * @function App
  * @extends React.FC (functional component syntax)
  * @returns our app in all of its glory
+ * TODO maybe refactor so this is just Grid.tsx ?
  */
 const App: React.FC = () =>
 {
@@ -38,9 +41,14 @@ const App: React.FC = () =>
     const [squareLetters, setSquareLetters] = useState<string[]>(() => Array(36).fill(""));
     const initialState : boolean[] = Array<boolean>(36).fill(false);
     const [squareState, setSquareState] = useState<boolean[]>(initialState);
+    /**
+     * track square groupings by adjacency and matching colors
+     */
+    const [squareGroupings, setSquareGroupings] = useState<number[][]>(() => []);
 
     /**
      * square color enumeration, 0-3
+     * className="square red"
      */
     const colors =
     [
@@ -50,33 +58,42 @@ const App: React.FC = () =>
         "brown"
     ];
 
-    // id="top" 
-    var head = document.getElementById("top");
-
     /**
-     * set functionality for mouse entering top banner
+     * @call useEffect() on component mount
      * 
-     * @function handleMouseEnter
+     * pass a CALLBACK FUNCTION as the first argument,
+     * which adds an event listener to `document`
+     * which listens for key press events`keydown`, subsequently calling `handleKeyDown`
+     * 
+     * the second argument is the DEPENDENCY ARRAY
+     * useEffect() is called when the state of a dependency changes
+     * @dependency [] the dependency array is EMPTY, this function only calls ONCE,
+     * upon initial component mount
+     * 
+     * we also initialize the board and find initial square groupings
+     * 
+     * @return clean up event listener on component dismount to avoid memory leaks
      */
-    const handleMouseEnter = () =>
+    useEffect(() =>
     {
-        head ? head.style.color = "#101010" : null;
-    }
+        document.addEventListener('keydown', handleKeyDown);
+
+        // initialize the board
+        initializeBoard();
+
+        // note that the return is also a callback function
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
 
     /**
-     * functionality for mouse leaving top banner
-     * 
-     * @function handleMouseLeave
-     */
-    const handleMouseLeave = () =>
-    {
-        head ? head.style.color = "#efefef" : null;
-    }
-
-    /**
-     * we want to initialize board state (square colors, letters)
-     * 
      * @function initializeBoard()
+     * 
+     * called by component mount as shown above
+     * initialize board state (square colors, letters)
+     * initially, none of the squares are touched,
+     * and they should all be filled
      */
     const initializeBoard = () =>
     {
@@ -85,26 +102,67 @@ const App: React.FC = () =>
         const staticLetters : string[] = [...squareLetters];
 
         // for-each loop on the squares array
-        doSquaresExist.forEach((existence, index) =>
+        doSquaresExist.forEach((e, index) =>
         {
-            // start with square colors
+            // initialize square colors
             // `randomColor` randomly generated number [0, colors.length)
             let randomColor : number = Math.floor(Math.random() * colors.length);
             staticColors[index] = colors[randomColor];
         
-            // now square letters
+            // initialize square letters
             // `randomLetter` randomly generated number [0,26)
             let randomLetter = Math.floor(Math.random() * 26);
             staticLetters[index] = String.fromCharCode(randomLetter+65);
         });
-
-        console.log(staticLetters);
 
         // dynamically update colors, letters, state (for some reason)
         setSquareColors(staticColors);
         setSquareLetters(staticLetters);
         setSquareState(initialState);
     }
+
+    /**
+     * @call useEffect()
+     * @dependency squareColor
+     * 
+     * called by color updates (setSquareColor)
+     * this occurs sometime after component mount and also on board moves
+     * 
+     * group adjacent squares that match color
+     * go through each square in a way
+     */
+    useEffect(() =>
+    {
+        const staticGroupings : number[][] = [];
+        // which squares have been grouped?
+        const grouped : boolean[] = Array(36).fill(false);
+
+        // iterate through all squares
+        // push to staticGroupings
+        // squares share grouping if they are neighbors and share same color
+        doSquaresExist.forEach((e, index) =>
+        {
+            const numGroupings = staticGroupings.length;
+            
+            // push if this square not already in a grouping
+            if (!grouped[index])
+            {
+                // note we push to staticGroupings[numGroupings]
+                staticGroupings.push([index]);
+                grouped[index] = true;
+                // consider right and bottom neighbors
+                if (index % 6 != 0 && squareColors[index] === squareColors[index+1])
+                {
+                    staticGroupings[numGroupings].push(index+1);
+                    grouped[index+1] = true;
+                }
+            }
+
+        });
+
+        // dynamically set now
+        setSquareGroupings(staticGroupings);
+    }, [squareColors]);
 
     /**
      * called by keypresses as needed- determine which squares
@@ -120,7 +178,7 @@ const App: React.FC = () =>
         // console.log(squareLetters);
 
         // square array for-each
-        doSquaresExist.forEach((existence, index) => 
+        doSquaresExist.forEach((e, index) => 
         {
             // if square is not `touched`
             if (!squareState[index])
@@ -141,6 +199,8 @@ const App: React.FC = () =>
     /**
      * 
      * @function checkNeighbors
+     * @param index
+     * @return true if at least one neighbor matches color and is touched
      */
     const checkNeighbors = (index : number) =>
     {
@@ -201,6 +261,60 @@ const App: React.FC = () =>
     }
 
     /**
+     * @function verifyNeighbors()
+     * @param index
+     * @return true if ALL neighbors that match color are touched
+     */
+    const verifyNeighbors = (index : number) =>
+    {
+        // given square `index`, check neighbors
+        // must have at least one neighbor that color matches and is visited
+        // cases to consider
+
+        // 1. index >= 6
+        // we can check above square
+        if (index >= 6 && squareColors[index] === squareColors[index-6])
+        {
+            if (!squareState[index-6])
+            {
+                return false;
+            }
+        }
+
+        // 2. index % 6 != 0
+        // we can check left
+        if (index % 6 != 0 && squareColors[index] === squareColors[index-1])
+        {
+            if (!squareState[index-1])
+            {
+                return false;
+            }
+        }
+
+        // 3. index % 6 != 5
+        // check right
+        if (index % 6 != 5 && squareColors[index] === squareColors[index+1])
+        {
+            if (!squareState[index+1])
+            {
+                return false;
+            }
+        }
+
+        // 4. index < 29
+        // check below
+        if (index < 29 && squareColors[index] === squareColors[index+6])
+        {
+            if (!squareState[index+6])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * called by spacebar
      * check the path and clear good ones
      * 
@@ -211,17 +325,27 @@ const App: React.FC = () =>
         // TODO check path, clear things as necessary
         const staticColors = [...squareColors];
         const staticLetters = [...squareLetters];
+        const staticState = [...squareState];
+        const verifiedSquares : boolean[] = Array(36).fill(false);
 
         // for-each loop on squares
-        doSquaresExist.forEach((existence, index) =>
+        doSquaresExist.forEach((e, index) =>
         {
             // TODO see if there's squares to clear
             // look through the touched blocks
-            if (squareState[index])
+            // opt to look for local copy so we can edit within execution?
+            // we'll have to pass in staticState
+            if (staticState[index])
             {
                 // TODO algorithm for checking neighbors (color match, then if touched)
-                staticColors[index] = "";
-                staticLetters[index] = "";
+                // TODO so what we need is a function that returns an array of all
+                // satisfied neighbors, then we cross check that with ...
+                if (verifyNeighbors(index))
+                {
+                    staticColors[index] = "";
+                    staticLetters[index] = "";
+                }
+                
             }
         });
 
@@ -280,8 +404,9 @@ const App: React.FC = () =>
             setKeyPressed(event.key.toUpperCase());
             setKeyString((keyString) => keyString + event.key.toUpperCase());
 
-            // calculate board state (with given key)
-            // calculateBoard(event.key.toUpperCase());
+            // note that `setKeyPressed` triggers the useEffect()
+            // function that we define below,
+            // where we calculate the board state
         }
     }
 
@@ -302,42 +427,10 @@ const App: React.FC = () =>
         }
     }, [keyPressed]);
 
-    /**
-     * useEffect() was imported from "react", and we call it here
-     * 
-     * we pass a CALLBACK FUNCTION as the first argument, 
-     * 
-     * our callback function adds an event listener to `document`
-     * which listens for key presses `keydown` and subsequently calls `handleKeyDown`
-     * 
-     * the second argument is the DEPENDENCY ARRAY
-     * typically, when the state of a dependency changes, this function is called
-     * since the dependency array is EMPTY, this function is only called ONCE, upon initial component mount
-     * 
-     * @call useEffect()
-     * @dependency none
-     * @return clean up event listener on component dismount to avoid memory leaks
-     */
-    useEffect(() =>
-    {
-        document.addEventListener('keydown', handleKeyDown);
-
-        // initialize the board
-        initializeBoard();
-
-        // note that the return is also a callback function
-        // prevents memory leaks
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
 
     return (
         <>
-            <div id="top" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                psychic fiesta
-            </div>
-
+            <Top />
             <div id="keyState">{keyString}</div>
 
             <div id="middle">
@@ -355,7 +448,7 @@ const App: React.FC = () =>
                      * @var childState value of current element in array
                      * @var index index of current element
                      */
-                    doSquaresExist.map((existence, index) =>
+                    doSquaresExist.map((e, index) =>
                     (
                         <Square
                             color = {squareColors[index]}
