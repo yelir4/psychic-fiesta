@@ -90,9 +90,9 @@ const App: React.FC = () =>
     /**
      * @function initializeBoard()
      * 
-     * called by component mount as shown above
-     * initialize board state (square colors, letters)
-     * initially, none of the squares are touched,
+     * called during component mount as shown above
+     * initialize square colors, letters
+     * initially, no squares are touched,
      * and they should all be filled
      */
     const initializeBoard = () =>
@@ -115,10 +115,10 @@ const App: React.FC = () =>
             staticLetters[index] = String.fromCharCode(randomLetter+65);
         });
 
-        // dynamically update colors, letters, state (for some reason)
+        // dynamically update colors, letters
+        // (we set state after these, as shown below)
         setSquareColors(staticColors);
         setSquareLetters(staticLetters);
-        setSquareState(initialState);
     }
 
     /**
@@ -126,7 +126,7 @@ const App: React.FC = () =>
      * @dependency squareColor
      * 
      * called by color updates (setSquareColor)
-     * this occurs sometime after component mount and also on board moves
+     * occurs after board initialization (above) and on subsequent board moves
      * 
      * group adjacent squares that match color
      * go through each square in a way
@@ -139,36 +139,112 @@ const App: React.FC = () =>
 
         // iterate through all squares
         // push to staticGroupings
-        // squares share grouping if they are neighbors and share same color
+        // squares are grouped if adjacent and match color
         doSquaresExist.forEach((e, index) =>
         {
-            const numGroupings = staticGroupings.length;
-            
             // push if this square not already in a grouping
             if (!grouped[index])
             {
-                // note we push to staticGroupings[numGroupings]
+                // note we push to the end of `staticGroupings`
+                // following which staticGroupings.length - 1 is `groupIndex`
                 staticGroupings.push([index]);
                 grouped[index] = true;
-                // consider right and bottom neighbors
-                if (index % 6 != 0 && squareColors[index] === squareColors[index+1])
-                {
-                    staticGroupings[numGroupings].push(index+1);
-                    grouped[index+1] = true;
-                }
-            }
 
+                // group this square together with neighbors
+                // after this function call, all square neighbors are grouped together
+                calcGroupings(index, staticGroupings, grouped);
+            }
         });
 
-        // dynamically set now
+        // log the groupings for debugging
+        console.log(staticGroupings);
+
+        // now save the 2d array
+        // also have to save the state here for some reason ...
         setSquareGroupings(staticGroupings);
+        setSquareState(initialState);
     }, [squareColors]);
 
     /**
+     * @function calcGroupings()
+     * @param index square index
+     * @param staticGroupings[][]
+     * @param grouped[]
+     * 
+     * our arrays are passed in as shown above,
+     * they are mutable (passed by reference) so we modify them directly
+     * and changes are maintained after
+     * function execution
+     * 
+     * we consider right, then bottom, then left neighbors
+     * when looking at neighbors we also check if they've already been grouped
+     */
+    const calcGroupings = (index : number, staticGroupings : number[][], grouped: boolean[]) =>
+    {
+        const groupIndex = staticGroupings.length - 1;
+
+        // TODO consider that now the right neighbors could already be grouped
+        // consider right, bottom neighbors recursively
+        if (index % 6 != 5 && !grouped[index + 1] && squareColors[index] === squareColors[index + 1])
+        {
+            staticGroupings[groupIndex].push(index + 1);
+            grouped[index + 1] = true;
+
+            // recursive call with the modified arrays
+            calcGroupings(index+1, staticGroupings, grouped);
+        }
+        // now bottom neighbors
+        if (index <= 29 && !grouped[index + 6] && squareColors[index] === squareColors[index + 6])
+        {
+            staticGroupings[groupIndex].push(index + 6);
+            grouped[index + 6] = true;
+
+            // recursive call
+            calcGroupings(index+6, staticGroupings, grouped);
+        }
+
+        // left neighbors and hopefully this doesn't do something bad
+        if (index % 6 != 0 && !grouped[index - 1] && squareColors[index] === squareColors[index - 1])
+        {
+            staticGroupings[groupIndex].push(index - 1);
+            grouped[index - 1] = true;
+
+            // recursive
+            calcGroupings(index-1, staticGroupings, grouped);
+        }
+    }
+
+    /**
+     * @function calculateBoard()
+     * 
      * called by keypresses as needed- determine which squares
      * are touched by the key pressed
      * 
-     * @function calculateBoard()
+     * TODO maybe we can track groupings of touched squares here too
+     * either that or we calculate on spacebar press
+     * that way we can decide whether or not we clear squares
+     * but we probably have to do at least some calculations here regarding
+     * groupings, if we want the functionality of un-touching squares
+     * if keyString doesn't match
+     * 
+     * TODO maybe somehow like a for-each grouping thing, where we iterate through all
+     * squares in groupings that are already touched,
+     * and they go through their neighbors, now if at least one of these
+     * has a neighbor that is not yet touched, matches the key, then we set that
+     * grouping to true, and we can keep it alive
+     * 
+     * otherwise each square is untouched
+     * etc etc.
+     * 
+     * HONESTLY if we do it this way it might be best because then we don't necessary
+     * have to clean or even check `keyPressed`, `keyString`, since we don't rely on that
+     * for touched, and the user then just has to clear the buffer (keyString) to move on
+     * 
+     * maybe like, when the board has squares cleared, thats when we introduce things
+     * but that has a problem with stalling? well we can say at least one move per 5 seconds
+     * or something
+     * and then if that isnt satisfied then the player loses
+     * thats actually quite an interesting proposition if i do say so myself
      */
     const calculateBoard = (key : string) =>
     {
@@ -197,9 +273,11 @@ const App: React.FC = () =>
     }
 
     /**
-     * 
-     * @function checkNeighbors
+     * @function checkNeighbors()
      * @param index
+     * 
+     * called by calculateBoard() as shown above?
+     * 
      * @return true if at least one neighbor matches color and is touched
      */
     const checkNeighbors = (index : number) =>
@@ -215,10 +293,10 @@ const App: React.FC = () =>
 
         // given square `index`, check neighbors
         // must have at least one neighbor that color matches and is visited
-        // cases to consider
 
-        // 1. index >= 6
-        // we can check above square
+        // cases: can't check directional neighbor if the square is on an edge/corner
+
+        // 1. square has an upper neighbor
         if (index >= 6)
         {
             if (squareState[index-6] && squareColors[index] === squareColors[index-6])
@@ -227,8 +305,7 @@ const App: React.FC = () =>
             }
         }
 
-        // 2. index % 6 != 0
-        // we can check left
+        // 2. square has a left neighbor
         if (index % 6 != 0)
         {
             if (squareState[index-1] && squareColors[index] === squareColors[index-1])
@@ -237,8 +314,7 @@ const App: React.FC = () =>
             }
         }
 
-        // 3. index % 6 != 5
-        // check right
+        // 3. square has a right neighbor
         if (index % 6 != 5)
         {
             if (squareState[index+1] && squareColors[index] === squareColors[index+1])
@@ -247,8 +323,7 @@ const App: React.FC = () =>
             }
         }
 
-        // 4. index < 29
-        // check below
+        // 4. square has a lower neighbor
         if (index < 29)
         {
             if (squareState[index+6] && squareColors[index] === squareColors[index+6])
@@ -257,6 +332,7 @@ const App: React.FC = () =>
             }
         }
 
+        // no neighbors match, return false
         return false;
     }
 
@@ -452,6 +528,7 @@ const App: React.FC = () =>
                     (
                         <Square
                             color = {squareColors[index]}
+                            index = {index}
                             letter = {squareLetters[index]}
                             key = {index}
                             //state = {childState}
