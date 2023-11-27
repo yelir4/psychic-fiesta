@@ -35,7 +35,7 @@ const Square: React.FC<SquareProps> = ({letter, index, color, state}) =>
     /**
      * @var debug if true, displays square indices
      */
-    const debug : boolean = true;
+    const debug : boolean = false;
 
     return (
         <div className={`square ${color} ${state ? "touched" : ""}`}>

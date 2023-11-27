@@ -212,10 +212,20 @@ const App: React.FC = () =>
             // recursive
             calcGroupings(index-1, staticGroupings, grouped);
         }
+
+        // top neighbors too...
+        if (index >= 6 && !grouped[index - 6] && squareColors[index] === squareColors[index - 6])
+        {
+            staticGroupings[groupIndex].push(index - 6);
+            grouped[index - 6] = true;
+
+            // recursive
+            calcGroupings(index-6, staticGroupings, grouped);
+        }
     }
 
     /**
-     * @function calculateBoard()
+     * @function calcBoard()
      * 
      * called by keypresses as needed- determine which squares
      * are touched by the key pressed
@@ -246,190 +256,165 @@ const App: React.FC = () =>
      * and then if that isnt satisfied then the player loses
      * thats actually quite an interesting proposition if i do say so myself
      */
-    const calculateBoard = (key : string) =>
+    const calcBoard = (key : string) =>
     {
-        let staticState = [...squareState];
+        const staticGroupings = [...squareGroupings];
+        const staticState = [...squareState];
 
-        // console.log(`hello ${key}`);
-        // console.log(squareLetters);
-
-        // square array for-each
-        doSquaresExist.forEach((e, index) => 
+        // case: first keypress
+        // touch every square with matching letter
+        // note: we need keyString[0] === " " because initial value is " "
+        // TODO fix
+        if (keyString === key || keyString[0] === " ")
         {
-            // if square is not `touched`
-            if (!squareState[index])
+            doSquaresExist.forEach((e, index) =>
             {
-                // key matches this square
                 if (key === squareLetters[index])
                 {
-                    // TODO probably pass staticState to an external function
-                    // that checks if the neighbors color match and are touched
-                    staticState[index] = checkNeighbors(index);
+                    staticState[index] = true;
                 }
-            }
-        });
+            }); 
+        }
+        // case: no squares are touched
+        // note we use `toString()` because we don't want to compare references
+        else if (staticState.toString() === initialState.toString())
+        {
+            console.log(`no matches!`);
+        }
+        // else: not first keypress, but there are touched squares
+        // check groupings
+        else
+        {
+            // for each GROUP
+            staticGroupings.forEach((group, index) => 
+            {
+                // `change` track if there is a new square touched in this group
+                let change : boolean = false;
+                // `groupHasTouched` track if the group has at least one touched square
+                let groupHasTouched : boolean = false;
 
+                // TODO we could also change the functionality such that,
+                // it is true if there is any square in the grouping that is touched
+                // in that case, the blocks dont have to be IMMEDIATELY adjacent
+                // in order to type, but rather just have to be in the same grouping
+                //
+                // so one run through to check for a touch
+                // another run to check for something new to touch (or simpler: matching letter)
+                // then we don't even need checkNeighbors ...
+
+                // for each square in the group (note we use `i` here)
+                group.forEach((i, index) =>
+                {
+                    if (staticState[i])
+                    {
+                        groupHasTouched = true;
+                        // would be nice to have a break() here
+                        // but we would need to restructure the for loop
+                    }
+                });
+
+                // second run: look for untouched matching square
+                // TODO decide if it has to also be untouched (more precise input)
+                // maybe not though because imagine if you have
+                // one grouping with one letter, but another grouping with 2 matching letter
+                // ex: X, X X
+                // tapping x once should be enough to clear i think
+                if (groupHasTouched)
+                {
+                    group.forEach((i, index) =>
+                    {
+                        if (key === squareLetters[i])
+                        {
+                            staticState[i] = true;
+                            change = true;
+                        }
+                    });
+                }
+
+                // after checking all squares in group,
+                // if no new square was touched,
+                // untouch all squares in the group
+                if (!change)
+                {
+                    group.forEach((i, index) => 
+                    {
+                        staticState[i] = false;
+                    });
+                }
+            });
+        }
+        // dynamically update state now
         setSquareState(staticState);
     }
 
     /**
-     * @function checkNeighbors()
-     * @param index
-     * 
-     * called by calculateBoard() as shown above?
-     * 
-     * @return true if at least one neighbor matches color and is touched
-     */
-    const checkNeighbors = (index : number) =>
-    {
-        // pre-requisite: something has to be touched first
-        // funny solution to use toString but it works
-        // you could check with console.log
-        // console.log(Array(36).fill(false).toString());
-        if (squareState.toString() === Array(36).fill(false).toString())
-        {
-            return true;
-        }
-
-        // given square `index`, check neighbors
-        // must have at least one neighbor that color matches and is visited
-
-        // cases: can't check directional neighbor if the square is on an edge/corner
-
-        // 1. square has an upper neighbor
-        if (index >= 6)
-        {
-            if (squareState[index-6] && squareColors[index] === squareColors[index-6])
-            {
-                return true;
-            }
-        }
-
-        // 2. square has a left neighbor
-        if (index % 6 != 0)
-        {
-            if (squareState[index-1] && squareColors[index] === squareColors[index-1])
-            {
-                return true;
-            }
-        }
-
-        // 3. square has a right neighbor
-        if (index % 6 != 5)
-        {
-            if (squareState[index+1] && squareColors[index] === squareColors[index+1])
-            {
-                return true;
-            }
-        }
-
-        // 4. square has a lower neighbor
-        if (index < 29)
-        {
-            if (squareState[index+6] && squareColors[index] === squareColors[index+6])
-            {
-                return true;
-            }
-        }
-
-        // no neighbors match, return false
-        return false;
-    }
-
-    /**
-     * @function verifyNeighbors()
-     * @param index
-     * @return true if ALL neighbors that match color are touched
-     */
-    const verifyNeighbors = (index : number) =>
-    {
-        // given square `index`, check neighbors
-        // must have at least one neighbor that color matches and is visited
-        // cases to consider
-
-        // 1. index >= 6
-        // we can check above square
-        if (index >= 6 && squareColors[index] === squareColors[index-6])
-        {
-            if (!squareState[index-6])
-            {
-                return false;
-            }
-        }
-
-        // 2. index % 6 != 0
-        // we can check left
-        if (index % 6 != 0 && squareColors[index] === squareColors[index-1])
-        {
-            if (!squareState[index-1])
-            {
-                return false;
-            }
-        }
-
-        // 3. index % 6 != 5
-        // check right
-        if (index % 6 != 5 && squareColors[index] === squareColors[index+1])
-        {
-            if (!squareState[index+1])
-            {
-                return false;
-            }
-        }
-
-        // 4. index < 29
-        // check below
-        if (index < 29 && squareColors[index] === squareColors[index+6])
-        {
-            if (!squareState[index+6])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * called by spacebar
-     * check the path and clear good ones
-     * 
      * @function clearBoard()
+     * 
+     * called by spacebar, after the keyString had changed
+     * 
+     * clear each grouping if every square is touched
+     * otherwise, dont
+     * 
+     * TODO need a timeout, then a reset
+     * maybe reset doesn't come here
      */
     const clearBoard = () =>
     {
         // TODO check path, clear things as necessary
         const staticColors = [...squareColors];
+        const staticGroupings = [...squareGroupings];
         const staticLetters = [...squareLetters];
         const staticState = [...squareState];
-        const verifiedSquares : boolean[] = Array(36).fill(false);
+        // const verifiedSquares : boolean[] = Array(36).fill(false);
 
-        // for-each loop on squares
+        console.log(`STATIC STATE ${staticState}`);
+
+        // for-each grouping
+        staticGroupings.forEach((group, index) => 
+        {
+            // track if all squares in this group are touched (so we can clear it)
+            let allTouched : boolean = true;
+
+            // run through group see if all are touched
+            group.forEach((i, index) => 
+            {
+                if (staticState[i] === false)
+                {
+                    allTouched = false;
+                }
+            });
+
+            // second run: untouch everything
+            if (!allTouched)
+            {
+                group.forEach((i, index) => 
+                {
+                    staticState[i] = false;
+                });
+            }
+        });
+
+        // for-each square
+        // at this point any touched squares can be cleared
+        // TODO we could track points here
+        // we could also just move this to the previous second run
         doSquaresExist.forEach((e, index) =>
         {
-            // TODO see if there's squares to clear
-            // look through the touched blocks
-            // opt to look for local copy so we can edit within execution?
-            // we'll have to pass in staticState
             if (staticState[index])
             {
-                // TODO algorithm for checking neighbors (color match, then if touched)
-                // TODO so what we need is a function that returns an array of all
-                // satisfied neighbors, then we cross check that with ...
-                if (verifyNeighbors(index))
-                {
-                    staticColors[index] = "";
-                    staticLetters[index] = "";
-                }
-                
+                console.log(index);
+                staticColors[index] = "purple";
+                // staticLetters[index] = "";
+                // staticState[index] = false;
             }
         });
 
         // TODO set timeout
         // probably need to call another function? maybe we need another piece of state,
-        // triggers when we change it here,
-        // then we useEffect to have it call this setTimeout
+        // trigger here,
+        // then useEffect to call setTimeout
         // and then re-balance the squares
+
         setTimeout(() =>
         {
 
@@ -437,7 +422,7 @@ const App: React.FC = () =>
 
         // dynamically update colors, letters, state
         setSquareColors(staticColors);
-        setSquareLetters(staticLetters);
+        // setSquareLetters(staticLetters);
         setSquareState(initialState);
     }
 
@@ -462,9 +447,6 @@ const App: React.FC = () =>
             // reset the key string
             setKeyPressed(" ");
             setKeyString("");
-            
-            // clear the board
-            // clearBoard();
         }
         /**
          * event.which is deprecated but still usable
@@ -480,7 +462,7 @@ const App: React.FC = () =>
             setKeyPressed(event.key.toUpperCase());
             setKeyString((keyString) => keyString + event.key.toUpperCase());
 
-            // note that `setKeyPressed` triggers the useEffect()
+            // note that `setKeyString` triggers the useEffect()
             // function that we define below,
             // where we calculate the board state
         }
@@ -488,20 +470,31 @@ const App: React.FC = () =>
 
     /**
      * we need to do it like THIS so we maintain the state
+     * ok previously we had it dependent on `keyPressed` but that had issues
+     * specifically regarding two adjacent letters that match color and letter
+     * and we had them within a string
+     * but anyhow, now we will just have it dependent on keyString, as that DOES
+     * change everytime (except on subsequent spacebars? i'll take a look at that)
+     * but im not sure it will affect program behavior,
      * 
-     * @dependency keyPressed
+     * but in any case now it should still update with the appropriate value for keyPressed?
+     * hopefully? we'll see...
+     * 
+     * @dependency keyString
      */
     useEffect(() =>
     {
-        if (keyPressed === " ")
+        if (keyString === " ")
         {
+            console.log("correct clear");
             clearBoard();
         }
         else
         {
-            calculateBoard(keyPressed);
+            console.log(`${keyString[keyString.length - 1]}`);
+            calcBoard(keyString[keyString.length - 1]);
         }
-    }, [keyPressed]);
+    }, [keyString]);
 
 
     return (
