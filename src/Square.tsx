@@ -9,6 +9,7 @@ import React, { useState } from "react";
 interface SquareProps
 {
     color: string;
+    exist: boolean;
     index: number;
     letter: string;
     state: boolean;
@@ -22,7 +23,7 @@ interface SquareProps
  * @param pressedKey passed in by App, keystroke
  * @return dynamic square css element
  */
-const Square: React.FC<SquareProps> = ({letter, index, color, state}) =>
+const Square: React.FC<SquareProps> = ({letter, exist, index, color, state}) =>
 {
     /**
      * @var color square color
@@ -38,7 +39,7 @@ const Square: React.FC<SquareProps> = ({letter, index, color, state}) =>
     const debug : boolean = false;
 
     return (
-        <div className={`square ${color} ${state ? "touched" : ""}`}>
+        <div className={`square ${exist ? color : "break"} ${state ? "touched" : ""}`}>
             {letter}{debug ? index : ""}
         </div>
     );

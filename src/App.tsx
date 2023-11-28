@@ -24,6 +24,8 @@ import Top from "./Top.tsx"
  */
 const App: React.FC = () =>
 {
+    // `count` square count
+    const count = 36;
     const [keyPressed, setKeyPressed] = useState<string>("");
     const [keyString, setKeyString] = useState<string>("");
     /**
@@ -36,10 +38,10 @@ const App: React.FC = () =>
      * 2: use functional syntax of useState
      *    ex: useState(() => Array(36).fill(false))
      */
-    const [doSquaresExist, setSquaresExist] = useState<boolean[]>(() => Array(36).fill(true));
-    const [squareColors, setSquareColors] = useState<string[]>(() => Array(36).fill(""));
-    const [squareLetters, setSquareLetters] = useState<string[]>(() => Array(36).fill(""));
-    const initialState : boolean[] = Array<boolean>(36).fill(false);
+    const [doSquaresExist, setSquaresExist] = useState<boolean[]>(() => Array(count).fill(true));
+    const [squareColors, setSquareColors] = useState<string[]>(() => Array(count).fill(""));
+    const [squareLetters, setSquareLetters] = useState<string[]>(() => Array(count).fill(""));
+    const initialState : boolean[] = Array<boolean>(count).fill(false);
     const [squareState, setSquareState] = useState<boolean[]>(initialState);
     /**
      * track square groupings by adjacency and matching colors
@@ -49,6 +51,8 @@ const App: React.FC = () =>
     /**
      * square color enumeration, 0-3
      * className="square red"
+     * managed in index.css
+     * .square.red
      */
     const colors =
     [
@@ -261,11 +265,18 @@ const App: React.FC = () =>
         const staticGroupings = [...squareGroupings];
         const staticState = [...squareState];
 
+        // case: initial state, component mount
+        // for some reason it calls this function
+        // with the initial keyString ""
+        if (keyString === "")
+        {
+            // do nothing
+        }
         // case: first keypress
         // touch every square with matching letter
-        // note: we need keyString[0] === " " because initial value is " "
-        // TODO fix
-        if (keyString === key || keyString[0] === " ")
+        // first part of conditional: before first move
+        // second part of conditional is after first move (keyString now starts with " ")
+        else if (keyString.length === 1 || (keyString.length === 2 && keyString[0] === " "))
         {
             doSquaresExist.forEach((e, index) =>
             {
@@ -279,7 +290,7 @@ const App: React.FC = () =>
         // note we use `toString()` because we don't want to compare references
         else if (staticState.toString() === initialState.toString())
         {
-            console.log(`no matches!`);
+            console.log(`you've just pressed a key when there were already no matches`);
         }
         // else: not first keypress, but there are touched squares
         // check groupings
@@ -362,6 +373,7 @@ const App: React.FC = () =>
     {
         // TODO check path, clear things as necessary
         const staticColors = [...squareColors];
+        const staticExists = [...doSquaresExist];
         const staticGroupings = [...squareGroupings];
         const staticLetters = [...squareLetters];
         const staticState = [...squareState];
@@ -375,7 +387,8 @@ const App: React.FC = () =>
             // track if all squares in this group are touched (so we can clear it)
             let allTouched : boolean = true;
 
-            // run through group see if all are touched
+            // iterate through squares in group
+            // if any of them are not touched, update `allTouched`
             group.forEach((i, index) => 
             {
                 if (staticState[i] === false)
@@ -384,7 +397,7 @@ const App: React.FC = () =>
                 }
             });
 
-            // second run: untouch everything
+            // only clear groupings that are completely touched
             if (!allTouched)
             {
                 group.forEach((i, index) => 
@@ -402,13 +415,20 @@ const App: React.FC = () =>
         {
             if (staticState[index])
             {
-                console.log(index);
-                staticColors[index] = "purple";
+                // console.log(index);
+                // staticColors[index] = "break";
+                staticExists[index] = false;
                 // staticLetters[index] = "";
                 // staticState[index] = false;
             }
         });
 
+       
+
+        // dynamically update colors, letters, state
+        setSquareColors(staticColors);
+        // setSquareLetters(staticLetters);
+        
         // TODO set timeout
         // probably need to call another function? maybe we need another piece of state,
         // trigger here,
@@ -417,13 +437,12 @@ const App: React.FC = () =>
 
         setTimeout(() =>
         {
-
+            // here is where we reset state
+            // TODO move down squares, then initialize new top ones
+            // setSquareColors(Array(count).fill("brown"));
+            setSquaresExist(staticExists);
+            setSquareState(initialState);
         }, 500); // ms
-
-        // dynamically update colors, letters, state
-        setSquareColors(staticColors);
-        // setSquareLetters(staticLetters);
-        setSquareState(initialState);
     }
 
     /**
@@ -446,7 +465,7 @@ const App: React.FC = () =>
         {
             // reset the key string
             setKeyPressed(" ");
-            setKeyString("");
+            setKeyString(" ");
         }
         /**
          * event.which is deprecated but still usable
@@ -484,14 +503,21 @@ const App: React.FC = () =>
      */
     useEffect(() =>
     {
-        if (keyString === " ")
+        // console.log("checking key now");
+
+        // initial state: keystring === ""
+        if (keyString === "")
+        {
+            // do nothing
+        }
+        else if (keyString === " ")
         {
             console.log("correct clear");
             clearBoard();
         }
         else
         {
-            console.log(`${keyString[keyString.length - 1]}`);
+            console.log(`checking ${keyString[keyString.length - 1]}`);
             calcBoard(keyString[keyString.length - 1]);
         }
     }, [keyString]);
@@ -514,6 +540,8 @@ const App: React.FC = () =>
                      * second argument gives the index
                      * third optional argument provides a reference to the ARRAY itself
                      * 
+                     * // TODO decide if we check exists here or in squares
+                     * 
                      * @var childState value of current element in array
                      * @var index index of current element
                      */
@@ -521,6 +549,7 @@ const App: React.FC = () =>
                     (
                         <Square
                             color = {squareColors[index]}
+                            exist = {doSquaresExist[index]}
                             index = {index}
                             letter = {squareLetters[index]}
                             key = {index}
